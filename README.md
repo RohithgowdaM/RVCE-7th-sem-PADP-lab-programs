@@ -27,12 +27,17 @@ gcc -fopenmp -lgd image.c
 ```
 - [ ] 5. Write a MPI Program that has  a total of 4 processes. Process with rank 1, 2, and 3 should send the following messages respectives to teh process with rank 0: HELLO, CSE, RVCE.
 ```
-mpicc mpi_message.c 
+mpicc 5.c 
 mpirun -np 4 ./a.out
 ```
 - [ ] 6. Write an OpenMP program for Word search in a file and illustrate the perfomanace using different sizes of file.
 ```
-gcc -fopenmp 1.c
+gcc -fopenmp 6.c
+./a.out
+```
+- [ ] 7. Write an OpenACC program to implement  two-dimensional Jacobi 
+```
+pgcc 7.c -acc -Minfo=accel
 ./a.out
 ```
 # g++ for CPP files, gcc for C files
