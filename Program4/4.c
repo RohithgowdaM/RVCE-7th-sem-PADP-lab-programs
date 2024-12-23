@@ -1,25 +1,23 @@
-#include <iostream>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <gd.h>
 #include <omp.h>
 
-using namespace std;
-
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        cout << "Usage: " << argv[0] << " <in.png> <out.png>" << endl;
+        printf("Usage: %s <in.png> <out.png>\n", argv[0]);
         exit(1);
     }
 
     FILE *ifp = fopen(argv[1], "rb");
     if (!ifp) {
-        cerr << "Error: Cannot open input file." << endl;
+        fprintf(stderr, "Error: Cannot open input file.\n");
         exit(1);
     }
 
     FILE *ofp = fopen(argv[2], "wb");
     if (!ofp) {
-        cerr << "Error: Cannot open output file." << endl;
+        fprintf(stderr, "Error: Cannot open output file.\n");
         fclose(ifp);
         exit(1);
     }
@@ -28,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     gdImagePtr img = gdImageCreateFromPng(ifp);
     if (!img) {
-        cerr << "Error: Cannot create image from input." << endl;
+        fprintf(stderr, "Error: Cannot create image from input.\n");
         fclose(ifp);
         fclose(ofp);
         exit(1);
@@ -37,7 +35,6 @@ int main(int argc, char *argv[]) {
     int w = gdImageSX(img);
     int h = gdImageSY(img);
 
-    
     gdImagePtr outImg = gdImageCreateTrueColor(w, h);
 
     #pragma omp parallel for collapse(2) // Parallelize both loops
@@ -57,7 +54,7 @@ int main(int argc, char *argv[]) {
     fclose(ofp);
 
     t = omp_get_wtime() - t;
-    cout << "Time: " << t << " seconds" << endl;
+    printf("Time: %f seconds\n", t);
 
     return 0;
 }

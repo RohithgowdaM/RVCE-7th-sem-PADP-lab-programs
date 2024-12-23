@@ -37,7 +37,7 @@ gcc -fopenmp 6.c
 ```
 - [ ] 7. Write an OpenACC program to implement  two-dimensional Jacobi 
 ```
-pgcc 7.c -acc -Minfo=accel
+pgcc 7.c -acc -Minfo=accel      
 ./a.out
 ```
 # g++ for CPP files, gcc for C files
