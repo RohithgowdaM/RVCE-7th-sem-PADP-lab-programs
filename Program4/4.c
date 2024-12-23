@@ -35,20 +35,23 @@ int main(int argc, char *argv[]) {
     int w = gdImageSX(img);
     int h = gdImageSY(img);
 
+    // Print the image size (width and height)
+    printf("Image size: %d x %d pixels\n", w, h);
+
     gdImagePtr outImg = gdImageCreateTrueColor(w, h);
 
-    // Different scheduling techniques to be tested: static, dynamic, guided, default
-    #pragma omp parallel for schedule(dynamic, 100) collapse(2) // You can try other schedules like static, guided
+    // Parallelize the image processing with OpenMP
+    #pragma omp parallel for schedule(dynamic, 100) collapse(2)
     for (int x = 0; x < w; x++) {
         for (int y = 0; y < h; y++) {
             int color = gdImageGetPixel(img, x, y);
             int avgColor = (gdImageRed(img, color) + gdImageGreen(img, color) + gdImageBlue(img, color)) / 3;
 
-            // Here, we assign a unique color for each thread.
+            // Assign a unique color for each thread
             int threadId = omp_get_thread_num();
-            int threadColor = (threadId * 10) % 256; // Use thread ID for unique color
+            int threadColor = (threadId * 10) % 256;
 
-            // Set the pixel to the grayscale value (black and white) and assign a thread-specific color pattern
+            // Set the pixel to the grayscale value (black and white) and apply the thread-specific color
             gdImageSetPixel(outImg, x, y, gdImageColorAllocate(outImg, avgColor + threadColor, avgColor + threadColor, avgColor + threadColor));
         }
     }
@@ -61,6 +64,7 @@ int main(int argc, char *argv[]) {
     fclose(ofp);
 
     t = omp_get_wtime() - t;
+    // Print the processing time along with the image size
     printf("Time: %f seconds\n", t);
 
     return 0;
