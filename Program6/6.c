@@ -39,7 +39,20 @@ int get_count(const char *file_name, const char *key) {
     return count;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <num_threads>\n", argv[0]);
+        return 1;
+    }
+
+    int num_threads = atoi(argv[1]);
+    if (num_threads < 1) {
+        fprintf(stderr, "Error: Number of threads must be at least 1.\n");
+        return 1;
+    }
+
+    omp_set_num_threads(num_threads);
+
     double t = omp_get_wtime();
 
     #pragma omp parallel for
