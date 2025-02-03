@@ -27,7 +27,7 @@ double pi;
 double st,end;
 omp_set_num_threads(num_threads);
 st=omp_get_wtime();
-#pragma amp parallel
+#pragma omp parallel
 {
 int local_count=0;
 unsigned int seed=SEED + omp_get_thread_num();
