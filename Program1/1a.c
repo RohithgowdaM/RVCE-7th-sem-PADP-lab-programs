@@ -37,7 +37,7 @@ for(int i=0;i<niter;i++)
 double x=(double)rand()/RAND_MAX;
 double y=(double)rand()/RAND_MAX;
 double z=x*x+y*y;
-if(z<=1)count++;
+if(z<=1)local_count++;
 }
 #pragma omp atomic
 count+=local_count;
