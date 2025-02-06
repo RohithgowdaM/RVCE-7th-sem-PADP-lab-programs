@@ -1,68 +1,72 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <openacc.h>
+#include <time.h>
 
-#define N 1000        // Grid size in x-direction
-#define M 1000        // Grid size in y-direction
-#define MAX_ITER 1000 // Maximum number of iterations
-#define TOL 1e-6      // Convergence tolerance
+#define N 512 // Define matrix size
 
-void initialize(double u[N][M], double f[N][M]) {
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < M; j++) {
-            u[i][j] = 0.0; // Initial guess
-            f[i][j] = 1.0; // Right-hand side (can be modified as needed)
-        }
+void initialize_matrix(float *matrix, int size) {
+    for (int i = 0; i < size; i++) {
+        matrix[i] = (float)(rand() % 100) / 10.0; // Random values between 0 and 10
     }
 }
 
-double jacobi(double u[N][M], double f[N][M]) {
-    double u_new[N][M];
-    int iter = 0;
-    double max_diff;
-
-    #pragma acc data copyin(f[0:N][0:M]) copy(u[0:N][0:M]) create(u_new[0:N][0:M])
-    {
-        do {
-            max_diff = 0.0;
-
-            #pragma acc parallel loop reduction(max:max_diff) collapse(2)
-            for (int i = 1; i < N - 1; i++) {
-                for (int j = 1; j < M - 1; j++) {
-                    u_new[i][j] = 0.25 * (u[i - 1][j] + u[i + 1][j] + u[i][j - 1] + u[i][j + 1] - f[i][j]);
-                    double diff = fabs(u_new[i][j] - u[i][j]);
-                    if (diff > max_diff) {
-                        max_diff = diff;
-                    }
-                }
-            }
-
-            #pragma acc parallel loop collapse(2)
-            for (int i = 1; i < N - 1; i++) {
-                for (int j = 1; j < M - 1; j++) {
-                    u[i][j] = u_new[i][j];
-                }
-            }
-
-            iter++;
-        } while (max_diff > TOL && iter < MAX_ITER);
+void print_matrix(float *matrix, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%6.2f ", matrix[i * cols + j]);
+        }
+        printf("\n");
     }
-
-    return max_diff;
 }
 
 int main() {
-    double u[N][M], f[N][M];
-
-    initialize(u, f);
-
-    double t_start = acc_get_wtime();
-    double final_diff = jacobi(u, f);
-    double t_end = acc_get_wtime();
-
-    printf("Final maximum difference: %e\n", final_diff);
-    printf("Elapsed time: %f seconds\n", t_end - t_start);
-
+    srand(time(NULL));
+    
+    // Allocate memory for matrices dynamically
+    float *A = (float *)malloc(N * N * sizeof(float));
+    float *B = (float *)malloc(N * N * sizeof(float));
+    float *C = (float *)malloc(N * N * sizeof(float));
+    
+    if (A == NULL || B == NULL || C == NULL) {
+        printf("Memory allocation failed!\n");
+        return 1;
+    }
+    
+    // Initialize matrices
+    initialize_matrix(A, N * N);
+    initialize_matrix(B, N * N);
+    
+    // Matrix multiplication using OpenACC
+    #pragma acc data copyin(A[0:N*N], B[0:N*N]) copyout(C[0:N*N])
+    {
+        #pragma acc parallel loop collapse(2)
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                float sum = 0.0f;
+                for (int k = 0; k < N; k++) {
+                    sum += A[i * N + k] * B[k * N + j];
+                }
+                C[i * N + j] = sum;
+            }
+        }
+    }
+    
+    // Print result (for small N)
+    if (N <= 8) {
+        printf("Matrix A:\n");
+        print_matrix(A, N, N);
+        printf("Matrix B:\n");
+        print_matrix(B, N, N);
+        printf("Resultant Matrix C:\n");
+        print_matrix(C, N, N);
+    } else {
+        printf("Matrix multiplication completed successfully!\n");
+    }
+    
+    // Free dynamically allocated memory
+    free(A);
+    free(B);
+    free(C);
+    
     return 0;
 }
